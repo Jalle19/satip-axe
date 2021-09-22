@@ -29,22 +29,22 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-MINISATIP_COMMIT=v1.1.43
+MINISATIP_COMMIT=v1.1.44
 
-BUSYBOX=busybox-1.26.2
+BUSYBOX=busybox-1.34.0
 
-DROPBEAR=dropbear-2017.75
+DROPBEAR=dropbear-2020.81
 DROPBEAR_SBIN_FILES=dropbear
 DROPBEAR_BIN_FILES=dbclient dropbearconvert dropbearkey scp
 
-ETHTOOL=ethtool-3.18
+ETHTOOL=ethtool-4.19
 
 MTD_UTILS_COMMIT=9f107132a6a073cce37434ca9cda6917dd8d866b # v1.5.1
 
-LIBTIRPC_VERSION=0.2.5
+LIBTIRPC_VERSION=1.3.2
 LIBTIRPC=libtirpc-$(LIBTIRPC_VERSION)
 
-RPCBIND_VERSION=0.2.3
+RPCBIND_VERSION=1.2.6
 RPCBIND=rpcbind-$(RPCBIND_VERSION)
 RPCBIND_SBIN_FILES=rpcbind rpcinfo
 
@@ -59,13 +59,13 @@ NFSUTILS_SBIN_FILES=utils/showmount/showmount \
 		    utils/statd/statd \
 		    utils/nfsd/nfsd
 
-NANO_VERSION=2.8.1
+NANO_VERSION=2.8.7
 NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
 NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
 
 # 10663 10937 11234 11398 11434
-OSCAM_REV=11693
+OSCAM_REV=11696
 
 IPERF=iperf-3.1.3
 IPERF_LIB_FILES=libiperf.so libiperf.so.0 libiperf.so.0.0.0
