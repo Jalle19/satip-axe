@@ -6,7 +6,8 @@ RUN yum -y update && \
   yum -y install epel-release && \
   yum -y install wget make gcc git python wget tar \
                  bzip2 uboot-tools patch fakeroot \
-                 svn file autoconf automake libtool
+                 svn file autoconf automake libtool \
+                 texinfo
 
 # Required for git operations when container is running as an UID that doesn't exist in /etc/passwd
 ENV GIT_COMMITTER_NAME=nobody
