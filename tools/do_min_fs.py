@@ -1,7 +1,8 @@
-#! /usr/bin/python
+#!/usr/bin/env python3
 
-import string
 import sys, os, re, getopt
+import subprocess
+from subprocess import Popen, PIPE, STDOUT
 
 #-----------------------------------------------------
 def run_cmd(cmd):
@@ -16,14 +17,14 @@ def run_cmd(cmd):
       cmd = str(cmd) + '  > output.txt'
       # print 'command: ' + cmd
       os.system(cmd)
-      f=open('output.txt','rw')
+      f=open('output.txt','r')
       cmd_output = f.readlines()
       f.close()
       os.system('rm output.txt')
       # print 'cmd_output: ' + str(cmd_output[0][:-1])
       # print 'cmd_output: ' + str(cmd_output)
-    except:
-         print '-> Error run_cmd'
+    except Exception as e:
+         print('-> Error run_cmd ' + cmd + ':', e)
     else:
         return cmd_output
 
@@ -39,7 +40,8 @@ def get_cmd_output(cmd):
     #p = Popen(cmd, shell=True, bufsize=bufsize, stdin=PIPE, stdout=PIPE, stderr=SDTOUT,
     #close_fds=True)
     #(dummy, stdout_and_stderr) = (p.stdin, p.stdout)
-    (dummy, stdout_and_stderr) = os.popen4(cmd, 'w')
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    (dummy, stdout_and_stderr) = (p.stdin, p.stdout)
     result = stdout_and_stderr.read()
     return  result.splitlines()
 
@@ -48,14 +50,9 @@ def get_cmd_output(cmd):
 def get_cmd_output_2(cmd):
     """ run a command on the shell and return
         stdout and stderr as separate list items. result[0]=out result[1]=err
-        os.popen* is obsolete! it's replaced by the new subprocess module (2.6)
-        FIXME
     """
-
-    #p = Popen(cmd, shell=True, bufsize=bufsize, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-    #close_fds=True)
-    #(stdin, stdout, stderr) = (p.stdin, p.stdout, p.stderr)
-    (stdin, stdout, stderr) = os.popen3(cmd, 'w')
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+    (stdin, stdout, stderr) = (p.stdin, p.stdout, p.stderr)
     out = stdout.read()
     err = stderr.read()
     result = ['' ,'']
@@ -137,20 +134,20 @@ def get_lib_path(list):
            end = a.find('(0x0') - 1
            #if (a.find('=> not found (0') >= 0 or (not a.find('/', start)>= 0) ):
            if (a.find('=> not found (0') >= 0 ):
-             print '\n' + 35*'=='
-             print 'Warning:\n  ldd was not able to locate the full path of the following library :'
-             print str(a) + '\n' + ' Please, retreive it and add the path of those dir in PATH var'
-             print 35*'=='
+             print('\n' + 35*'==')
+             print('Warning:\n  ldd was not able to locate the full path of the following library :')
+             print(str(a) + '\n' + ' Please, retreive it and add the path of those dir in PATH var')
+             print(35*'==')
            #b = target_prefix + a[start:end]
            b = a[start:end]
            # try: busybox, LDD_ROOT_BASE=target_prefix, LDD_ROOT_SHOW not defined. If you define it
            # (1 or 0) it seems don't catch some libs (2 verify: xterm)
            if b.find('/opt/') == -1:
               b = target_prefix + b
-           print '\tlibrary: ' + str(b)
+           print('\tlibrary: ' + str(b))
            lib_paths.append(b)
     except:
-         print '-> Error from get_lib_path'
+         print('-> Error from get_lib_path')
     else:
        return lib_paths
 
@@ -184,7 +181,7 @@ def gen_fs(lib_list, init_type):
         2) get paths from lib_list.
         Copy all files into the fs. Setup busybox or sh shell
     """
-    print '\t coping libraries  and binary files \n'
+    print('\t coping libraries  and binary files \n')
     run_cmd('rm -rf fs fs.cpio')
     for i in ['sbin', 'bin', 'dev', 'sys', 'etc', 'lib/modules', 'tmp', 'proc', 'usr/lib', 'usr/libexec', 'var', 'root']:
       run_cmd('mkdir -p fs/' + i)
@@ -231,7 +228,7 @@ def gen_fs(lib_list, init_type):
     run_cmd(' chmod a+x fs/etc/* ')
     run_cmd(' chmod 0600 fs/root ')
 
-    print '\t====== coping additional libs ========'
+    print ('\t====== coping additional libs ========')
     # libnss_* are required from login; but it's not possible get by ldd cmd
     run_cmd('cp  -d ' + target_prefix + '/lib/libresolv*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss*' + ' fs/lib/')
@@ -260,30 +257,30 @@ def gen_fs(lib_list, init_type):
 def do_cpio(path):
     """
     """
-    print 'doing fs.cpio \n'
+    print('doing fs.cpio \n')
     cmd = 'cd ' + str(path) + ' ; find . | cpio -ovB -H newc >  ../fs.cpio  '
-    print cmd
+    print(cmd)
     get_cmd_output(cmd)
 
 #------------------------------------------------
 
 def usage():
-    print '\n\nDESCRIPTION:\nStarting from the installed binary RPM (for SH4), it discover '
-    print 'the minimal set of shared library object needed from a dinamically linked application.'
-    print 'It also returns, a filesystem skeleton, including a small set of selected binaries'
-    print '\n  -h,  --help   Usage information.'
-    print '\n  -b,  --binary <file> executable file; use " " to specify more than one bin '
-    print '         (example: -b "gzip ls pwd") '
-    print '\n  -t,  --target_prefix <path> the target path location '
-    print '         (default: /opt/STM/STLinux-2.4/devkit/sh4/target/)'
-    print '\n  -e,  --extra <file>:<dst> to be added to the filesystem'
-    print '\n  -r,  --version <ver>'
-    print '\n  -i   --init_type : '
-    print '\t\t\t  busybox '
-    print '\t\t\t  sysv '
-    print '\t\t\t  no (no init files) '
-    print 'example: ./do_min_fs.py -i busybox -t /opt/STM/STLinux-2.4/devkit/sh4/target -b "file more"'
-    print '\n\n\n'
+    print('\n\nDESCRIPTION:\nStarting from the installed binary RPM (for SH4), it discover ')
+    print('the minimal set of shared library object needed from a dinamically linked application.')
+    print('It also returns, a filesystem skeleton, including a small set of selected binaries')
+    print('\n  -h,  --help   Usage information.')
+    print('\n  -b,  --binary <file> executable file; use " " to specify more than one bin ')
+    print('         (example: -b "gzip ls pwd") ')
+    print('\n  -t,  --target_prefix <path> the target path location ')
+    print('         (default: /usr/sh4-linux-gnu/)')
+    print('\n  -e,  --extra <file>:<dst> to be added to the filesystem')
+    print('\n  -r,  --version <ver>')
+    print('\n  -i   --init_type : ')
+    print('\t\t\t  busybox ')
+    print('\t\t\t  sysv ')
+    print('\t\t\t  no (no init files) ')
+    print('example: ./do_min_fs.py -i busybox -t /usr/sh4-linux-gnu -b "file more"')
+    print('\n\n\n')
     sys.exit()
 
 #--------------------------------------------------
@@ -360,20 +357,20 @@ def get_library(command):
            paths.append(j)
     # for a given bin path, get the package name (if it exist)
     rpm_package_name = ' '
-    print '\npaths: ' + str(paths)
+    print('\npaths: ' + str(paths))
     for i in paths:
-        print 'rpm -qf ' + str(i)
+        print('rpm -qf ' + str(i))
         pkg = get_cmd_output('rpm -qf ' + i)
         if ((pkg[0].find('is not owned') == -1  and  pkg[0].find('such file') == -1)):
            rpm_package_name =  pkg
            binary_command = i
     raw_list=[]
     if (rpm_package_name == " "):
-       print 30*'=' + '\n Warning: ' + str(command) + ' Package not found \n' + 30*'='
+       print(30*'=' + '\n Warning: ' + str(command) + ' Package not found \n' + 30*'=')
        return raw_list
 
-    print '\n  binary_command: ' + str(binary_command)
-    print '  rpm_package_name: ' + str(rpm_package_name)
+    print('\n  binary_command: ' + str(binary_command))
+    print('  rpm_package_name: ' + str(rpm_package_name))
     # we want to copy into the minimal FS the binary too
     raw_list.append(binary_command)
 
@@ -400,21 +397,21 @@ def get_library(command):
 
         if (i.find("bin") >= 0):
            if (resu.find('ASCII') >=0 or resu.find('script text') >=0 ):
-              print '        adding: ' + str(i)
+              print('        adding: ' + str(i))
               raw_list.append(i)
 
         if (i.find("/etc/") >= 0):
            if (resu.find('ASCII') >=0 or resu.find('script text') >=0 or resu.find('data') >= 0 \
            or resu.find('text') >= 0):
-              print '        adding: ' + str(i)
+              print('        adding: ' + str(i))
               raw_list.append(i)
 
         if (i.find("/lib") >= 0):
            if (resu.find('ASCII') >=0 or resu.find('script text') >=0):
-              print '        adding: ' + str(i)
+              print('        adding: ' + str(i))
               raw_list.append(i)
            if (resu.find("ELF 32") >= 0 or resu.find("symbolic link to") >= 0):
-              print '        adding: ' + str(i)
+              print('        adding: ' + str(i))
               raw_list.append(i)
 
             # take out docs man README info
@@ -423,7 +420,7 @@ def get_library(command):
            if (i.find("/share/") >= 0):  # look inside /share dir
               if (resu.find('ASCII') >=0 or resu.find('script text') >=0 \
               or  resu.find('magic') >=0 or resu.find('data') >= 0):
-                 print '       found /share file adding: ' + str(i)
+                 print('       found /share file adding: ' + str(i))
                  raw_list.append(i)
 
     return unique(raw_list)
@@ -447,7 +444,7 @@ def get_common_path(s1, s2):
 #os.environ['LDD_ROOT_SHOW'] = '0'
 
 global target_prefix
-target_prefix = '/opt/STM/STLinux-2.4/devkit/sh4/target'
+target_prefix = '/usr/sh4-linux-gnu'
 boot_type = 'busybox' # default
 user_param = ['', '', '']
 user_param = get_menu_opt(sys.argv[1:])
@@ -461,11 +458,11 @@ if user_param[1] != '':
 if user_param[2] != '':
    target_prefix =  user_param[2]
 
-print 30*'='
-print '  bin: ' + str(bin_list)
-print '  boot_type: ' + str(boot_type)
-print '  target_prefix:  ' + str(target_prefix)
-print 30*'='
+print(30*'=')
+print('  bin: ' + str(bin_list))
+print('  boot_type: ' + str(boot_type))
+print('  target_prefix:  ' + str(target_prefix))
+print(30*'=')
 
 ldd_cmd_sh4 = target_prefix + '/../../../host/bin/ldd'
 os.environ['LDD_ROOT_BASE'] = target_prefix
@@ -501,10 +498,10 @@ for i in library_list:
 
 library_list = file_list
 
-print '\n  ======== libs bin and config files ========='
+print('\n  ======== libs bin and config files =========')
 for j in library_list:
-    print j
-print '     ' + 30*'='  + '\n'
+    print(j)
+print('     ' + 30*'='  + '\n')
 
 gen_fs(library_list, boot_type)
 run_cmd('rm -v fs/etc/inittabBB fs/etc/init.d/rcSBB')
