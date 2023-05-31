@@ -29,10 +29,6 @@ KMODULES = drivers/usb/serial/cp210x.ko \
 	   drivers/usb/serial/ftdi_sio.ko \
 	   drivers/usb/serial/oti6858.ko
 
-LIBDVBCSA_COMMIT=bc6c0b164a87ce05e9925785cc6fb3f54c02b026 # latest at the time
-LIBDVBCSA=libdvbcsa-master
-LIBDVBCSA_LIB_FILES=libdvbcsa.so libdvbcsa.so.1 libdvbcsa.so.1.0.1
-
 MINISATIP_COMMIT=v1.2.12
 
 BUSYBOX=busybox-1.32.1
@@ -142,7 +138,6 @@ fs.cpio: $(CPIO_SRCS)
 	  $(foreach f,$(DROPBEAR_BIN_FILES), -e "apps/$(DROPBEAR)/$(f):usr/bin/$(f)") \
 	  -e "apps/$(OPENSSH)/sftp-server:usr/libexec/sftp-server" \
 	  -e "apps/$(ETHTOOL)/ethtool:sbin/ethtool" \
-	  $(foreach f,$(LIBDVBCSA_LIB_FILES), -e "apps/$(LIBDVBCSA)/src/.libs/$(f):lib/$(f)") \
 	  -e "apps/minisatip/minisatip:sbin/minisatip" \
 	  $(foreach f,$(notdir $(wildcard apps/minisatip/html/*)), -e "apps/minisatip/html/$f:usr/share/minisatip/html/$f") \
 	  -e "apps/$(NANO)/src/nano:usr/bin/nano" \
@@ -279,12 +274,10 @@ media-clean:
 # minisatip
 #
 
-apps/minisatip/minisatip: apps/$(LIBDVBCSA)/src/.libs/libdvbcsa.a
+apps/minisatip/minisatip:
 	rm -rf apps/minisatip
 	$(call GIT_CLONE,https://github.com/catalinii/minisatip.git,minisatip,$(MINISATIP_COMMIT))
 	cd apps/minisatip && ./configure \
-		CFLAGS="-I$(CURDIR)/apps/$(LIBDVBCSA)/src" \
-		LDFLAGS="-L$(CURDIR)/apps/$(LIBDVBCSA)/src/.libs" \
 		--enable-axe \
 		--enable-dvbapi \
 		--enable-dvbcsa \
@@ -293,7 +286,7 @@ apps/minisatip/minisatip: apps/$(LIBDVBCSA)/src/.libs/libdvbcsa.a
 		--disable-netcv
 	make -C apps/minisatip -j $(CPUS) \
 		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include -I$(CURDIR)/apps/$(LIBDVBCSA)/src"
+	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
 
 .PHONY: minisatip
 minisatip: apps/minisatip/minisatip
@@ -439,29 +432,6 @@ apps/mtd-utils/nanddump: apps/mtd-utils/Makefile
 
 .PHONY: mtd-utils
 mtd-utils: apps/mtd-utils/nanddump
-
-#
-# libdvbcsa
-#
-apps/$(LIBDVBCSA)/bootstrap:
-	$(call GIT_CLONE,https://code.videolan.org/videolan/libdvbcsa.git,$(LIBDVBCSA),$(LIBDVBCSA_COMMIT))
-
-apps/$(LIBDVBCSA)/configure: apps/$(LIBDVBCSA)/bootstrap
-	cd apps/$(LIBDVBCSA) && \
-		./bootstrap
-
-apps/$(LIBDVBCSA)/src/.libs/libdvbcsa.a: apps/$(LIBDVBCSA)/configure
-	cd apps/$(LIBDVBCSA) && \
-		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2" \
-	./configure \
-	  --host=sh4-linux \
-	  --prefix=/
-		--disable-shared
-	make -C apps/$(LIBDVBCSA) -j $(CPUS)
-
-.PHONY: libdvbcsa
-libdvbcsa: apps/$(LIBDVBCSA)/src/.libs/libdvbcsa.a
 
 #
 # binutils (mainly for addr2line)
