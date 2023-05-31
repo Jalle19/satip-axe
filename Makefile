@@ -2,9 +2,6 @@ BUILD=26
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=$(shell nproc)
 CURDIR=$(shell pwd)
-STLINUX=/opt/STM/STLinux-2.4
-TOOLPATH=$(STLINUX)/host/bin
-TOOLCHAIN=$(STLINUX)/devkit/sh4
 HOST_ARCH=$(shell uname -m)
 
 EXTRA_AXE_MODULES_DIR=firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS
@@ -44,12 +41,12 @@ OPENSSH=openssh-9.1p1
 
 ETHTOOL=ethtool-3.18
 
-MTD_UTILS_COMMIT=9f107132a6a073cce37434ca9cda6917dd8d866b # v1.5.1
+MTD_UTILS_COMMIT=v2.1.5
 
-NANO_VERSION=2.8.1
+NANO_VERSION=7.2
 NANO=nano-$(NANO_VERSION)
 NANO_FILENAME=$(NANO).tar.gz
-NANO_DOWNLOAD=http://www.nano-editor.org/dist/v2.8/$(NANO_FILENAME)
+NANO_DOWNLOAD=http://www.nano-editor.org/dist/v7/$(NANO_FILENAME)
 
 OSCAM_COMMIT=e1d2fb78 # r11763
 
@@ -157,17 +154,17 @@ fs-list:
 #
 
 out/idl4k.cfgreset: patches/uboot-cfgreset.script
-	$(TOOLPATH)/mkimage -T script -C none \
+	/usr/bin/mkimage -T script -C none \
 	  -n 'Reset satip-axe fw configuration' \
 	  -d patches/uboot-cfgreset.script out/idl4k.cfgreset
 
 out/idl4k.cfgresetusb: patches/uboot-cfgresetusb.script
-	$(TOOLPATH)/mkimage -T script -C none \
+	/usr/bin/mkimage -T script -C none \
 	  -n 'Reset satip-axe fw configuration (USB)' \
 	  -d patches/uboot-cfgresetusb.script out/idl4k.cfgresetusb
 
 out/idl4k.recovery: patches/uboot-recovery.script
-	$(TOOLPATH)/mkimage -T script -C none \
+	/usr/bin/mkimage -T script -C none \
 	  -n 'Restore original idl4k fw' \
 	  -d patches/uboot-recovery.script out/idl4k.recovery
 
@@ -177,10 +174,10 @@ out/idl4k.scr: patches/uboot.script patches/uboot-flash.script out/satip-axe-$(V
 	  < patches/uboot.script > out/uboot.script
 	sed -e 's/@VERSION@/$(VERSION)/g' \
 	  < patches/uboot-flash.script > out/uboot-flash.script
-	$(TOOLPATH)/mkimage -T script -C none \
+	/usr/bin/mkimage -T script -C none \
 	  -n 'SAT>IP AXE fw v$(VERSION)' \
 	  -d out/uboot.script out/satip-axe-$(VERSION).usb
-	$(TOOLPATH)/mkimage -T script -C none \
+	/usr/bin/mkimage -T script -C none \
 	  -n 'SAT>IP AXE fw v$(VERSION)' \
 	  -d out/uboot-flash.script out/satip-axe-$(VERSION).flash
 	ln -sf satip-axe-$(VERSION).usb out/idl4k.scr
@@ -197,18 +194,17 @@ out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 
 kernel/.config: patches/kernel.config
 	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- idl4k_defconfig
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- idl4k_defconfig
 
 kernel/drivers/usb/serial/cp210x.ko: kernel/.config
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- modules
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- modules
 
 kernel/arch/sh/boot/uImage.gz: kernel/drivers/usb/serial/cp210x.ko fs.cpio
 	mv fs.cpio kernel/rootfs-idl4k.cpio
-	make -C kernel -j $(CPUS) PATH="$(PATH):$(TOOLPATH)" \
-	                          ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- uImage.gz
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- uImage.gz
 
 tools/i2c_mangle.ko: tools/i2c_mangle.c
-	make -C tools ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- all
+	make -C tools ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- all
 
 .PHONY: kernel-modules
 kernel-modules: kernel/drivers/usb/serial/cp210x.ko tools/i2c_mangle.ko
@@ -218,7 +214,7 @@ kernel: kernel/arch/sh/boot/uImage.gz
 
 .PHONY: kernel-mrproper
 kernel-mrproper:
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux- mrproper
+	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- mrproper
 
 #
 # extract kernel modules from firmware
@@ -236,8 +232,8 @@ firmware/initramfs/root/modules_idl4k_7108_ST40HOST_LINUX_32BITS/axe_dmx.ko:
 #
 
 tools/syscall-dump.so: tools/syscall-dump.c
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/syscall-dump.so -shared -rdynamic tools/syscall-dump.o -ldl
+	/usr/bin/sh4-linux-gnu-gcc -o tools/syscall-dump.o -c -fPIC -Wall tools/syscall-dump.c
+	/usr/bin/sh4-linux-gnu-gcc -o tools/syscall-dump.so -shared -rdynamic tools/syscall-dump.o -ldl
 
 tools/syscall-dump.so.$(HOST_ARCH): tools/syscall-dump.c
 	gcc -o tools/syscall-dump.o.$(HOST_ARCH) -c -fPIC -Wall tools/syscall-dump.c
@@ -284,7 +280,7 @@ apps/minisatip/minisatip:
 		--disable-dvbca \
 		--disable-netcv
 	make -C apps/minisatip -j $(CPUS) \
-		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		CC=/usr/bin/sh4-linux-gnu-gcc \
 	  EXTRA_CFLAGS="-O2 -I$(CURDIR)/kernel/include"
 
 .PHONY: minisatip
@@ -304,7 +300,7 @@ apps/$(IPERF)/configure:
 
 apps/$(IPERF)/src/.libs/libiperf.a: apps/$(IPERF)/configure
 	cd apps/$(IPERF) && \
-		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		CC=/usr/bin/sh4-linux-gnu-gcc \
 		CFLAGS="-O2" \
 		./configure \
 			--host=sh4-linux \
@@ -324,7 +320,7 @@ apps/$(BUSYBOX)/Makefile:
 
 apps/$(BUSYBOX)/busybox: apps/$(BUSYBOX)/Makefile
 	cp configs/busybox.config apps/$(BUSYBOX)/.config
-	make -C apps/$(BUSYBOX) -j $(CPUS) CROSS_COMPILE=$(TOOLCHAIN)/bin/sh4-linux-
+	make -C apps/$(BUSYBOX) -j $(CPUS) CROSS_COMPILE=/usr/bin/sh4-linux-gnu-
 
 .PHONY: busybox
 busybox: apps/$(BUSYBOX)/busybox
@@ -340,7 +336,7 @@ apps/$(CHRONY)/configure:
 
 apps/$(CHRONY)/Makefile: apps/$(CHRONY)/configure
 	cd apps/$(CHRONY) && \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
 	./configure \
 	  --prefix=/ \
 	  --without-libcap \
@@ -364,7 +360,7 @@ apps/$(DROPBEAR)/configure:
 
 apps/$(DROPBEAR)/dropbear: apps/$(DROPBEAR)/configure
 	cd apps/$(DROPBEAR) && \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
 	./configure \
 	  --host=sh4-linux \
 	  --prefix=/ \
@@ -388,7 +384,7 @@ apps/$(OPENSSH)/configure:
 
 apps/$(OPENSSH)/sftp-server: apps/$(OPENSSH)/configure
 	cd apps/$(OPENSSH) && \
-		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		CC=/usr/bin/sh4-linux-gnu-gcc \
 	./configure \
 		--host=sh4-linux \
 		--prefix=/
@@ -407,7 +403,7 @@ apps/$(ETHTOOL)/configure:
 
 apps/$(ETHTOOL)/ethtool: apps/$(ETHTOOL)/configure
 	cd apps/$(ETHTOOL) && \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
 	  CFLAGS="-O2" \
 	./configure \
 	  --host=sh4-linux \
@@ -420,13 +416,26 @@ ethtool: apps/$(ETHTOOL)/ethtool
 #
 # mtd-utils
 #
-
-apps/mtd-utils/Makefile:
+apps/mtd-utils/autogen.sh:
 	$(call GIT_CLONE,git://git.infradead.org/mtd-utils.git,mtd-utils,$(MTD_UTILS_COMMIT))
+
+apps/mtd-utils/configure: apps/mtd-utils/autogen.sh
+	cd apps/mtd-utils && \
+		./autogen.sh
+
+apps/mtd-utils/Makefile: apps/mtd-utils/configure
+	cd apps/mtd-utils && \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
+	  CFLAGS="-O2" \
+	./configure \
+	  --host=sh4-linux \
+	  --prefix=/ \
+		--without-jffs \
+		--without-ubifs
 
 apps/mtd-utils/nanddump: apps/mtd-utils/Makefile
 	make -C apps/mtd-utils -j $(CPUS) \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
 	  CFLAGS="-O2 -I$(CURDIR)/kernel/include"
 
 .PHONY: mtd-utils
@@ -442,8 +451,8 @@ apps/$(BINUTILS)/binutils/configure:
 # disable as much as possible during configuring, since we only really want one binary...
 apps/$(BINUTILS)/binutils/addr2line: apps/$(BINUTILS)/binutils/configure
 	cd apps/$(BINUTILS) && \
-		AR=$(TOOLCHAIN)/bin/sh4-linux-ar \
-		CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
+		AR=/usr/bin/sh4-linux-gnu-ar \
+		CC=/usr/bin/sh4-linux-gnu-gcc \
 		CFLAGS="-O2" \
 	./configure \
 		--host=sh4-linux \
@@ -467,7 +476,7 @@ apps/oscam/config.sh:
 	$(call GIT_CLONE,https://git.streamboard.tv/common/oscam.git,oscam,$(OSCAM_COMMIT))
 
 apps/oscam/oscam: apps/oscam/config.sh
-	make -C apps/oscam -j $(CPUS) CROSS_DIR=$(TOOLCHAIN)/bin/ CROSS=sh4-linux- OSCAM_BIN=oscam
+	make -C apps/oscam -j $(CPUS) CROSS_DIR=/usr/bin/ CROSS=sh4-linux-gnu- OSCAM_BIN=oscam
 
 .PHONY: oscam
 oscam: apps/oscam/oscam
@@ -482,8 +491,8 @@ apps/$(NANO)/configure:
 
 apps/$(NANO)/src/nano: apps/$(NANO)/configure
 	cd apps/$(NANO) && \
-	  CC=$(TOOLCHAIN)/bin/sh4-linux-gcc \
-	  CFLAGS="-O2" \
+	  CC=/usr/bin/sh4-linux-gnu-gcc \
+	  CFLAGS="-O2 -I/usr/sh4-linux-gnu/include/ncurses" \
 	./configure \
 	  --host=sh4-linux \
 	  --disable-utf8 \
@@ -502,7 +511,7 @@ apps/unicable/dsqsend/senddsq.c:
 
 apps/unicable/dsqsend/senddsq: apps/unicable/dsqsend/senddsq.c
 	cd apps/unicable && \
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o dsqsend/senddsq -Wall -lrt dsqsend/senddsq.c
+	/usr/bin/sh4-linux-gnu-gcc -o dsqsend/senddsq -Wall -lrt dsqsend/senddsq.c
 
 .PHONY: senddsq
 senddsq: apps/unicable/dsqsend/senddsq
@@ -512,7 +521,7 @@ senddsq: apps/unicable/dsqsend/senddsq
 #
 
 tools/axehelper: tools/axehelper.c
-	$(TOOLCHAIN)/bin/sh4-linux-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
+	/usr/bin/sh4-linux-gnu-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
 
 #
 # clean all
