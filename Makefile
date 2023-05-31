@@ -35,7 +35,7 @@ LIBDVBCSA_LIB_FILES=libdvbcsa.so libdvbcsa.so.1 libdvbcsa.so.1.0.1
 
 MINISATIP_COMMIT=v1.3.57 # final version that supports axe
 
-BUSYBOX=busybox-1.26.2
+BUSYBOX=busybox-1.32.1
 
 CHRONY=chrony-4.5
 CHRONY_SBIN_FILES=chronyd chronyc
