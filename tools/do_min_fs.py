@@ -45,123 +45,6 @@ def get_cmd_output(cmd):
     result = stdout_and_stderr.read()
     return  result.splitlines()
 
-#-----------------------------------------------------------------
-
-def get_cmd_output_2(cmd):
-    """ run a command on the shell and return
-        stdout and stderr as separate list items. result[0]=out result[1]=err
-    """
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
-    (stdin, stdout, stderr) = (p.stdin, p.stdout, p.stderr)
-    out = stdout.read()
-    err = stderr.read()
-    result = ['' ,'']
-    result[0] = out
-    result[1] = err
-    return  result
-
-#-----------------------------------------------------------------
-
-def unique(s):
-    """ Return a list of elements without duplicates
-        Imput: list
-	Output: the same list (without duplicates)
-    """
-    n = len(s)
-    if n == 0:
-       return []
-
-    # First Try to use a dictionary
-    # If it doesn't work, it will fail quickly, so it
-    # doesn't cost much to try it.  It requires that all the
-    # sequence elements be hashable, and support equality comparison.
-
-    u = {}
-    try:
-       for x in s:
-           u[x] = 1
-    except TypeError:
-           del u   # move to the next method
-    else:
-        return u.keys()
-
-    # We can't hash all the elements. Second fastest is to sort
-    # which brings the equal elements together; then duplicates are
-    # easy to weed out in a single pass.
-    # NOTE:  Python's list.sort() was designed to be efficient in the
-    # presence of many duplicate elements.  This isn't true of all
-    # sort functions in all languages or libraries, so this approach
-    # is more effective in Python than it may be elsewhere.
-
-    try:
-       t = list(s)
-       t.sort()
-    except TypeError:
-       del t    # move to the next method
-    else:
-       assert n > 0
-       last = t[0]
-       lasti = i = 1
-       while i < n:
-           if t[i] != last:
-              t[lasti] = last = t[i]
-              lasti += 1
-           i += 1
-       return t[:lasti]
-
-    # Brute force
-    u = []
-    for x in s:
-      if x not in u:
-         u.append(x)
-    return u
-
-#------------------------------------------------
-
-def get_lib_path(list):
-    """extract from the ldd command output, only the library path
-       information.
-       Input: a list containing the full ldd results
-       Output: a list containing only the library paths
-    """
-    try:
-      lib_paths = []
-      #print str(list)
-      for i in range(len(list)):
-        a = list[i]
-        if(a.find('=>') >= 0):
-           start = a.find('=>') + 3
-           end = a.find('(0x0') - 1
-           #if (a.find('=> not found (0') >= 0 or (not a.find('/', start)>= 0) ):
-           if (a.find('=> not found (0') >= 0 ):
-             print('\n' + 35*'==')
-             print('Warning:\n  ldd was not able to locate the full path of the following library :')
-             print(str(a) + '\n' + ' Please, retreive it and add the path of those dir in PATH var')
-             print(35*'==')
-           #b = target_prefix + a[start:end]
-           b = a[start:end]
-           # try: busybox, LDD_ROOT_BASE=target_prefix, LDD_ROOT_SHOW not defined. If you define it
-           # (1 or 0) it seems don't catch some libs (2 verify: xterm)
-           if b.find('/opt/') == -1:
-              b = target_prefix + b
-           print('\tlibrary: ' + str(b))
-           lib_paths.append(b)
-    except:
-         print('-> Error from get_lib_path')
-    else:
-       return lib_paths
-
-#------------------------------------------------
-
-def del_line_feed(my_list):
-    """ clear the '\n' from the given list;
-        return a second list without '\n'
-    """
-    my_list2 = []
-    for item in my_list:
-      my_list2.append(re.sub('\n', '', item))
-    return my_list2
-
 #---------------------------------------
 
 def setup_busybox():
@@ -176,7 +59,7 @@ def setup_busybox():
 
 #------------------------------------------------
 
-def gen_fs(lib_list, init_type):
+def gen_fs(init_type):
     """ 1) generate a minimal FS skeleton;
         2) get paths from lib_list.
         Copy all files into the fs. Setup busybox or sh shell
@@ -188,42 +71,11 @@ def gen_fs(lib_list, init_type):
     for i in ['sbin', 'bin']:
       run_cmd('mkdir -p fs/usr/' + i)
 
-
-    for i in lib_list:
-        target_dir = os.path.dirname(i)
-        file_name = os.path.basename(i)
-
-        if (target_dir.find('/sbin') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp -a ' + i + ' fs/' + fs_dir)
-        if (target_dir.find('/bin') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp -a ' + i + ' fs/' + fs_dir)
-        if (target_dir.find('/dev') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp ' + i + ' fs/' + fs_dir)
-        if (target_dir.find('/etc') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp ' + i + ' fs/' + fs_dir)
-        if (target_dir.find('/lib') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp -d ' + i + ' fs/' + fs_dir)
-        if (target_dir.find('/usr') >=0):
-           fs_dir = target_dir.replace(target_prefix, '')
-           run_cmd('mkdir -p ' + 'fs/' + fs_dir)
-           run_cmd('cp  ' + i + ' fs/' + fs_dir)
+    run_cmd('cp  -d ' + target_prefix + '/lib/*' + ' fs/lib/')
 
     run_cmd(' chmod a+x fs/lib/lib* ')
     run_cmd(' chmod a+x fs/etc/* ')
     run_cmd(' chmod 0600 fs/root ')
-
-    print ('\t====== coping additional libs ========')
-    run_cmd('cp  -d ' + target_prefix + '/lib/*' + ' fs/lib/')
 
     if init_type == 'busybox':
        setup_busybox()
@@ -304,108 +156,6 @@ def get_menu_opt(argv):
     params.append(version)
     return params
 
-#-----------------------------------------
-
-def get_library(command):
-    """ input: the binary name
-        output: a list of all libraries (and config files
-        inside <target>/etc) used from 'command'.
-    """
-    cmd =  'find '+  target_prefix + ' -name ' + command
-    resu = []
-    resu = get_cmd_output_2(str(cmd))
-    raw_paths = resu[0].splitlines()
-
-    # get only the binary command: remove all paths that not include 'bin' (or 'sbin')
-    paths = []
-    for j in raw_paths:
-        #if j.find('bin') >=0 :
-        if (j.find('/target/bin') >=0 or j.find('/target/sbin') >=0 or j.find('/usr/bin') >=0 \
-            or j.find('/usr/local/bin') >=0  or j.find('/usr/sbin') >=0 \
-            or j.find('/usr/local/sbin') >=0 ):
-           paths.append(j)
-    # for a given bin path, get the package name (if it exist)
-    rpm_package_name = ' '
-    print('\npaths: ' + str(paths))
-    for i in paths:
-        print('rpm -qf ' + str(i))
-        pkg = get_cmd_output('rpm -qf ' + i)
-        if ((pkg[0].find('is not owned') == -1  and  pkg[0].find('such file') == -1)):
-           rpm_package_name =  pkg
-           binary_command = i
-    raw_list=[]
-    if (rpm_package_name == " "):
-       print(30*'=' + '\n Warning: ' + str(command) + ' Package not found \n' + 30*'=')
-       return raw_list
-
-    print('\n  binary_command: ' + str(binary_command))
-    print('  rpm_package_name: ' + str(rpm_package_name))
-    # we want to copy into the minimal FS the binary too
-    raw_list.append(binary_command)
-
-    line=[]
-    line = get_lib_path(run_cmd(ldd_cmd_sh4 + ' ' + binary_command))
-    for i in line:
-        raw_list.append(i)
-
-    # now, get the file list from the rpm pkg and search for config files under /etc and /lib
-    rpm_output = get_cmd_output('rpm -qli ' + rpm_package_name[0])
-    rpm_path=[]
-    # extract paths from the rpm output and put it into the rpm_path[] list
-    for i in range(len(rpm_output)):
-        if rpm_output[i][0:1] == '/':
-            rpm_path.append(rpm_output[i])
-    del rpm_output
-    #print 'rpm_path ' + str(rpm_path)
-
-    # analyze the RPM pkg file list and get scripts and lib files
-    # shared library are got by ldd cmd in get_library()
-    for i in rpm_path:
-        cmd_file_result = run_cmd(' file ' + i)
-        resu = str(cmd_file_result[0])
-
-        if (i.find("bin") >= 0):
-           if (resu.find('ASCII') >=0 or resu.find('script text') >=0 ):
-              print('        adding: ' + str(i))
-              raw_list.append(i)
-
-        if (i.find("/etc/") >= 0):
-           if (resu.find('ASCII') >=0 or resu.find('script text') >=0 or resu.find('data') >= 0 \
-           or resu.find('text') >= 0):
-              print('        adding: ' + str(i))
-              raw_list.append(i)
-
-        if (i.find("/lib") >= 0):
-           if (resu.find('ASCII') >=0 or resu.find('script text') >=0):
-              print('        adding: ' + str(i))
-              raw_list.append(i)
-           if (resu.find("ELF 32") >= 0 or resu.find("symbolic link to") >= 0):
-              print('        adding: ' + str(i))
-              raw_list.append(i)
-
-            # take out docs man README info
-        if (i.find("/doc/") == -1  and  i.find('/man/') == -1 and i.find('READ') == -1 \
-        and i.find('info') == -1):
-           if (i.find("/share/") >= 0):  # look inside /share dir
-              if (resu.find('ASCII') >=0 or resu.find('script text') >=0 \
-              or  resu.find('magic') >=0 or resu.find('data') >= 0):
-                 print('       found /share file adding: ' + str(i))
-                 raw_list.append(i)
-
-    return unique(raw_list)
-
-#--------------------------------------------------
-
-def get_common_path(s1, s2):
-    com = ''
-    for i in range(len(s1)):
-        if s1[i] == s2[i]:
-           com = str(com) + str(s1[i])
-        else:
-           break
-    com = str(com) + '*'
-    return com
-
 ## ================================================================
 ## 		       		Main
 ## =================================================================
@@ -431,42 +181,8 @@ print('  boot_type: ' + str(boot_type))
 print('  target_prefix:  ' + str(target_prefix))
 print(30*'=')
 
-ldd_cmd_sh4 = target_prefix + '/../../../host/bin/ldd'
-os.environ['LDD_ROOT_BASE'] = target_prefix
-line=[]
-raw_library_list=[]
+gen_fs(boot_type)
 
-# setup libs for bash
-if boot_type != 'no':
-   if boot_type == 'busybox':
-      line = get_library('busybox')
-      for j in line:
-          raw_library_list.append(j)
-
-library_list_swp = unique(raw_library_list)
-library_list = del_line_feed(library_list_swp)
-del library_list_swp
-
-file_list = []
-for i in library_list:
-    cmd = 'readlink ' + str(i)
-    file = get_cmd_output(cmd)
-    if file != [] and (i.find('/lib/') >= 0):
-       file_path = os.path.dirname(i) +'/' + str(file[0])
-       common = get_common_path(str(i), str(file_path))
-       file_list.append(str(common))
-    else:
-       file_list.append(str(i))
-
-library_list = file_list
-
-print('\n  ======== libs bin and config files =========')
-for j in library_list:
-    print(j)
-print('     ' + 30*'='  + '\n')
-
-gen_fs(library_list, boot_type)
-run_cmd('rm -v fs/etc/inittabBB fs/etc/init.d/rcSBB')
 for d in extradir_list:
   run_cmd('cp -Rv ' + d + '/* fs')
 f = open("fs/etc/motd")
