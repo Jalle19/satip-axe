@@ -79,7 +79,7 @@ docker-release:
 docker-clean-release:
 	docker build -t satip-axe-make .
 	git clean -xfd -f
-	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make clean all release
+	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make all release
 
 #
 # all
@@ -190,8 +190,23 @@ out/satip-axe-$(VERSION).fw: kernel/arch/sh/boot/uImage.gz
 #
 # kernel
 #
+kernel/Makefile:
+	$(call WGET,https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/linux-2.6.32.71.tar.gz,apps/linux-2.6.32.71.tar.gz)
+	tar -C apps -xf apps/linux-2.6.32.71.tar.gz
+# symlink to the location of the bundled kernel to avoid having to update all paths
+	ln -s apps/linux-2.6.32.71 kernel
 
-kernel/.config: patches/kernel.config
+kernel/patches.applied: kernel/Makefile
+# paths are relative to apps/linux-2.6.32.71, not the symlink
+	cd kernel && \
+		patch -p1 < ../../patches/linux/001-add-compiler-gcc8.h.patch && \
+		patch -p1 < ../../patches/linux/002-add-no-error-unused-but-set-variable.patch && \
+		patch -p1 < ../../patches/linux/003-log2.h-from-linux-4.16.patch && \
+		patch -p1 < ../../patches/linux/004-fix-tty-port-users-multiple-decl.patch && \
+		patch -p1 < ../../patches/linux/005-timecode-perl-warning.patch && \
+		touch patches.applied
+
+kernel/.config: patches/kernel.config kernel/patches.applied
 	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- idl4k_defconfig
 
@@ -210,10 +225,6 @@ kernel-modules: kernel/drivers/usb/serial/cp210x.ko tools/i2c_mangle.ko
 
 .PHONY: kernel
 kernel: kernel/arch/sh/boot/uImage.gz
-
-.PHONY: kernel-mrproper
-kernel-mrproper:
-	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- mrproper
 
 #
 # extract kernel modules from firmware
@@ -521,12 +532,3 @@ senddsq: apps/unicable/dsqsend/senddsq
 
 tools/axehelper: tools/axehelper.c
 	/usr/bin/sh4-linux-gnu-gcc -o tools/axehelper -Wall -lrt tools/axehelper.c
-
-#
-# clean all
-#
-
-.PHONY: clean
-clean: kernel-mrproper
-	rm -rf firmware/initramfs
-	rm -rf tools/syscall-dump.o* tools/syscall-dump.s*
