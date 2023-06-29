@@ -229,25 +229,7 @@ def gen_fs(lib_list, init_type):
     run_cmd(' chmod 0600 fs/root ')
 
     print ('\t====== coping additional libs ========')
-    # libnss_* are required from login; but it's not possible get by ldd cmd
-    run_cmd('cp  -d ' + target_prefix + '/lib/libresolv*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libnss*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nis*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/')
-
-    # other libs
-    run_cmd('cp  -d ' + target_prefix + '/lib/libutil*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/librt*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libpthread*' + ' fs/lib/')
-    run_cmd('cp  -a ' + target_prefix + '/lib/libgcc_*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libz.so*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libstdc++.so*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libglib-2.0.so*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libnsl*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/lib/libncurses.so*' + ' fs/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libmagic.so*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libssl.so*' + ' fs/usr/lib/')
-    run_cmd('cp  -d ' + target_prefix + '/usr/lib/libcrypto.so*' + ' fs/usr/lib/')
+    run_cmd('cp  -d ' + target_prefix + '/lib/*' + ' fs/lib/')
 
     if init_type == 'busybox':
        setup_busybox()
