@@ -218,12 +218,6 @@ def gen_fs(lib_list, init_type):
            run_cmd('mkdir -p ' + 'fs/' + fs_dir)
            run_cmd('cp  ' + i + ' fs/' + fs_dir)
 
-    #cmd = 'cp -r ' + target_prefix + '/etc/rc.d/' + ' fs/etc/'
-    #print cmd
-    #run_cmd(cmd)
-
-    run_cmd(' cp ' + target_prefix  +  '/etc/{passwd,group,hosts} fs/etc ')
-
     run_cmd(' chmod a+x fs/lib/lib* ')
     run_cmd(' chmod a+x fs/etc/* ')
     run_cmd(' chmod 0600 fs/root ')
