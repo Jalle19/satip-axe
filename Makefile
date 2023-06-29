@@ -119,7 +119,6 @@ CPIO_SRCS += binutils
 fs.cpio: $(CPIO_SRCS)
 	fakeroot tools/do_min_fs.py \
 	  -r "$(VERSION)" \
-	  -b "openssl" \
 	  -d "fs-add" \
 	  $(foreach m,$(EXTRA_AXE_MODULES), -e "$(EXTRA_AXE_MODULES_DIR)/$(m):lib/modules/axe/$(m)") \
 	  -e "patches/axe_dmxts_std.ko:lib/modules/axe/axe_dmxts_std.ko" \
