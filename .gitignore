@@ -1,6 +1,7 @@
 *~
 fs
 apps
+kernel
 firmware/initramfs
 fs.cpio
 kernel/rootfs-idl4k.cpio

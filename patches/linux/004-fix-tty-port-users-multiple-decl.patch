@@ -1,0 +1,13 @@
+diff --git a/include/linux/tty.h b/include/linux/tty.h
+index f0f43d08..afc8f040 100644
+--- a/include/linux/tty.h
++++ b/include/linux/tty.h
+@@ -467,7 +467,7 @@ extern int tty_port_close_start(struct tty_port *port,
+ extern void tty_port_close_end(struct tty_port *port, struct tty_struct *tty);
+ extern void tty_port_close(struct tty_port *port,
+ 				struct tty_struct *tty, struct file *filp);
+-extern inline int tty_port_users(struct tty_port *port)
++static inline int tty_port_users(struct tty_port *port)
+ {
+ 	return port->count + port->blocked_open;
+ }

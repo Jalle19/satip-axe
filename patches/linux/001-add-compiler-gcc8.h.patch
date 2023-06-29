@@ -1,0 +1,7 @@
+diff --git a/include/linux/compiler-gcc8.h b/include/linux/compiler-gcc8.h
+new file mode 100644
+index 00000000..4de95e73
+--- /dev/null
++++ b/include/linux/compiler-gcc8.h
+@@ -0,0 +1 @@
++#include <linux/compiler-gcc4.h>

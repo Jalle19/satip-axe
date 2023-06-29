@@ -1,0 +1,15 @@
+--- a/kernel/timeconst.pl	2016-03-12 15:25:48.000000000 +0200
++++ b/kernel/timeconst.pl	2023-06-29 14:39:24.250726920 +0300
+@@ -369,10 +369,8 @@
+ 		die "Usage: $0 HZ\n";
+ 	}
+ 
+-	@val = @{$canned_values{$hz}};
+-	if (!defined(@val)) {
+-		@val = compute_values($hz);
+-	}
++	$cv = $canned_values{$hz};
++	@val = defined($cv) ? @$cv : compute_values($hz);
+ 	output($hz, @val);
+ }
+ exit 0;
