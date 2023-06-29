@@ -206,8 +206,8 @@ kernel/patches.applied: kernel/Makefile
 		patch -p1 < ../../patches/linux/005-timecode-perl-warning.patch && \
 		touch patches.applied
 
-kernel/.config: patches/kernel.config kernel/patches.applied
-	cp patches/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
+kernel/.config: configs/kernel.config kernel/patches.applied
+	cp configs/kernel.config ./kernel/arch/sh/configs/idl4k_defconfig
 	make -C kernel -j $(CPUS) ARCH=sh CROSS_COMPILE=/usr/bin/sh4-linux-gnu- idl4k_defconfig
 
 kernel/drivers/usb/serial/cp210x.ko: kernel/.config
