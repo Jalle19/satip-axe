@@ -291,24 +291,18 @@ def get_menu_opt(argv):
     try:
 #      opts = ''
 #      args = ''
-       opts , args = getopt.gnu_getopt(argv, 'hb:e:d:t:i:r:',
-           ['--init_type', '--binary=', '--extra', '--extradir',
+       opts , args = getopt.gnu_getopt(argv, 'h:e:d:t:i:r:',
+           ['--init_type', '--extra', '--extradir',
             '--target_prefix=', '--version', '--help'])
     except getopt.GetoptError:
            usage()
     target_prefix = ''
     console = ''
-    binary_list=[]
     extra_list=[]
     extradir_list=[]
     version = ''
     for o, v  in opts:
-       if o == '-b' or o == '--binary':
-          v = v.split(' ')  # take out all blank spaces and replace the v string with  binary_list
-          for i in v:
-            if i != '':
-               binary_list.append(i)
-       elif o == '-e' or o == '--extra':
+       if o == '-e' or o == '--extra':
           v = v.split(' ')
           for i in v:
             if i != '':
@@ -327,7 +321,6 @@ def get_menu_opt(argv):
        elif o == '-h' or o == '--help':
           usage()
     params = []
-    params.append(binary_list)
     params.append(console)
     params.append(target_prefix)
     params.append(extra_list)
@@ -448,18 +441,16 @@ target_prefix = '/usr/sh4-linux-gnu'
 boot_type = 'busybox' # default
 user_param = ['', '', '']
 user_param = get_menu_opt(sys.argv[1:])
-bin_list = user_param[0]  # command list to find
-extra_list = user_param[3]
-extradir_list = user_param[4]
-version = user_param[5]
+extra_list = user_param[2]
+extradir_list = user_param[3]
+version = user_param[4]
 
-if user_param[1] != '':
+if user_param[0] != '':
    boot_type = user_param[1] # default busybox
-if user_param[2] != '':
+if user_param[1] != '':
    target_prefix =  user_param[2]
 
 print(30*'=')
-print('  bin: ' + str(bin_list))
 print('  boot_type: ' + str(boot_type))
 print('  target_prefix:  ' + str(target_prefix))
 print(30*'=')
@@ -475,11 +466,6 @@ if boot_type != 'no':
       line = get_library('busybox')
       for j in line:
           raw_library_list.append(j)
-
-for i in range(len(bin_list)):
-    line =  get_library(bin_list[i])
-    for j in line:
-        raw_library_list.append(j)
 
 library_list_swp = unique(raw_library_list)
 library_list = del_line_feed(library_list_swp)
