@@ -239,6 +239,7 @@ def gen_fs(lib_list, init_type):
     run_cmd('cp  -d ' + target_prefix + '/lib/libnss_nisplus*' + ' fs/lib/')
 
     # other libs
+    run_cmd('cp  -d ' + target_prefix + '/lib/libdl*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libutil*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/librt*' + ' fs/lib/')
     run_cmd('cp  -d ' + target_prefix + '/lib/libpthread*' + ' fs/lib/')
