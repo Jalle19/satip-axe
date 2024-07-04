@@ -48,8 +48,6 @@ def get_cmd_output(cmd):
 #---------------------------------------
 
 def setup_busybox():
-    run_cmd('cp ' + target_prefix + '/bin/busybox fs/bin')
-
     run_cmd(' ln -s  /bin/busybox  fs/sbin/init')
     run_cmd(' ln -s  /bin/busybox  fs/bin/sh')
 
@@ -71,10 +69,9 @@ def gen_fs(init_type):
     for i in ['sbin', 'bin']:
       run_cmd('mkdir -p fs/usr/' + i)
 
-    run_cmd('cp  -d ' + target_prefix + '/lib/*' + ' fs/lib/')
+    run_cmd('cp -r -d ' + target_prefix + '/lib/*' + ' fs/lib/')
 
     run_cmd(' chmod a+x fs/lib/lib* ')
-    run_cmd(' chmod a+x fs/etc/* ')
     run_cmd(' chmod 0600 fs/root ')
 
     if init_type == 'busybox':
@@ -97,8 +94,6 @@ def usage():
     print('the minimal set of shared library object needed from a dinamically linked application.')
     print('It also returns, a filesystem skeleton, including a small set of selected binaries')
     print('\n  -h,  --help   Usage information.')
-    print('\n  -b,  --binary <file> executable file; use " " to specify more than one bin ')
-    print('         (example: -b "gzip ls pwd") ')
     print('\n  -t,  --target_prefix <path> the target path location ')
     print('         (default: /usr/sh4-linux-gnu/)')
     print('\n  -e,  --extra <file>:<dst> to be added to the filesystem')
@@ -122,7 +117,8 @@ def get_menu_opt(argv):
        opts , args = getopt.gnu_getopt(argv, 'h:e:d:t:i:r:',
            ['--init_type', '--extra', '--extradir',
             '--target_prefix=', '--version', '--help'])
-    except getopt.GetoptError:
+    except getopt.GetoptError as err:
+           print(err)
            usage()
     target_prefix = ''
     console = ''
