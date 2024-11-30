@@ -35,6 +35,15 @@ There are two ways to flash new firmware to your device:
 * using the `upgrade-fw` script. Download the `.fw` file you want to flash to your device, then run `upgrade-fw path/to/file.fw`. The script only works for updating installations made to the device's flash memory - if dual-booting from a 
 USB device you should not use it.
 
+### Updating from older upstream builds (16 and older)
+
+If your configuration for minisatip is done with the `MINISATIP8` and `MINISATIP8_OPTS` options you need to change 
+those configuration keys to be `MINISATIP` and `MINISATIP_OPTS` respectively, otherwise `minisatip` won't start 
+at all.
+
+It's best to start with a [fresh configuration](./fs-add/etc/config.default), then adjust `MINISATIP_OPTS` according to your setup.
+
+
 ## Securing your installation
 
 By default, the `root` password is `satip`. To harden the installation you should 
