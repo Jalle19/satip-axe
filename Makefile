@@ -466,7 +466,7 @@ libdvbcsa: apps/$(LIBDVBCSA)/src/.libs/libdvbcsa.a
 # binutils (mainly for addr2line)
 #
 apps/$(BINUTILS)/binutils/configure:
-	$(call WGET,https://ftp.gnu.org/gnu/binutils/$(BINUTILS).tar.gz,apps/$(BINUTILS).tar.gz)
+	$(call WGET,https://sourceware.org/pub/binutils/releases/$(BINUTILS).tar.gz,apps/$(BINUTILS).tar.gz)
 	tar -C apps -xf apps/$(BINUTILS).tar.gz
 
 # disable as much as possible during configuring, since we only really want one binary...
