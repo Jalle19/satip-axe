@@ -16,6 +16,7 @@ Releases can be found [here](https://github.com/Jalle19/satip-axe/releases).
 * Reworked build system for easier development
 * Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 * SFTP support for easier file configuration editing
+* Removed telnet support for better security
 
 ## Build instructions
 
