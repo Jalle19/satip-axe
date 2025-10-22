@@ -1,9 +1,0 @@
-#!/bin/sh
-
-test -r /etc/sysconfig/config && . /etc/sysconfig/config
-
-if test "$TELNETD" != "yes"; then
-  exit 0
-fi
-
-exec /usr/sbin/telnetd -F -l /bin/login
