@@ -8,8 +8,6 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/chronyd
 # minisatip
 ::once:/etc/init.d/satip
-# telnetd
-::once:/etc/init.d/telnetd
 # dropbear
 ::once:/etc/init.d/dropbear
 # inetd

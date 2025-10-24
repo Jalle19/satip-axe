@@ -42,11 +42,6 @@ IPV4="dhcp"
 #SYSLOGD_OPTS="-R 192.168.1.1:514"
 
 #
-# telnetd
-#
-TELNETD="yes"
-
-#
 # dropbear
 #
 DROPBEAR="yes"
