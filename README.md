@@ -55,6 +55,13 @@ disable the password and use SSH keys to access the device.
 3. Copy `/etc/passwd` to `/etc/sysconfig/passwd` and modify the password entry for `root` to be `*`. This disables the password completely.
 4. Reboot once more. Now your device can only be accessed using SSH keys.
 
+## Using the HTTP server
+
+To serve static files over HTTP, please:
+
+1. Set `INETD=yes` in `/etc/sysconfig/config`
+2. Create `/mnt/data/html` and put your files there
+
 ## More information
 
 For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme), [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README) and [upstream's debug/README](https://github.com/perexg/satip-axe/blob/master/debug/README.md)
