@@ -53,7 +53,7 @@ MINISATIP="yes"
 MINISATIP_OPTS=""
 
 #
-# inetd (httpd,ftpd)
+# inetd (httpd)
 #
 INETD="yes"
 

@@ -16,7 +16,7 @@ Releases can be found [here](https://github.com/Jalle19/satip-axe/releases).
 * Reworked build system for easier development
 * Leaner firmware image (obsolete versions of minisatip, tvheadend and Python have been removed)
 * SFTP support for easier file configuration editing
-* Removed telnet support for better security
+* Removed telnet and FTP support for better security
 
 ## Build instructions
 
@@ -54,6 +54,13 @@ disable the password and use SSH keys to access the device.
 2. Reboot the device and verify that you can SSH into it without entering a password
 3. Copy `/etc/passwd` to `/etc/sysconfig/passwd` and modify the password entry for `root` to be `*`. This disables the password completely.
 4. Reboot once more. Now your device can only be accessed using SSH keys.
+
+## Using the HTTP server
+
+To serve static files over HTTP, please:
+
+1. Set `INETD=yes` in `/etc/sysconfig/config`
+2. Create `/mnt/data/html` and put your files there
 
 ## More information
 
