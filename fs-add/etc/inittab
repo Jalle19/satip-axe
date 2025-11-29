@@ -16,6 +16,8 @@ ttyAS0::askfirst:/bin/sh
 ::once:/etc/init.d/crond
 # oscamd
 ::once:/etc/init.d/oscamd
+# watchdog
+::once:/etc/init.d/watchdog
 # Others
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/sbin/swapoff -a

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+watchdog /dev/watchdog
