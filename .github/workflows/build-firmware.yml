@@ -15,8 +15,7 @@ jobs:
       
     - name: Build the firmware
       run: |
-        docker build . --pull --file Dockerfile --tag satip-axe-make
-        docker run --rm -v $(pwd):/build satip-axe-make all release
+        docker run --rm -v $(pwd):/build jalle19/satip-axe-make:latest all release
     
     - name: Archive build artifacts
       uses: actions/upload-artifact@v4

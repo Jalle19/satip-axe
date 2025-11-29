@@ -62,6 +62,23 @@ To serve static files over HTTP, please:
 1. Set `INETD=yes` in `/etc/sysconfig/config`
 2. Create `/mnt/data/html` and put your files there
 
+## A note on the Docker image
+
+The original build system for this firmware is based on a very old version of 
+CentOS 7 for STLinux. The original ISO and yum mirror is long gone, and the 
+Docker image `jalle19/centos7-stlinux24` pushed to Docker Hub is the only 
+remaining copy that has the relevant toolchain available.
+
+Since CentOS 7 has been EOL for something like 10 years now, most mirrors are 
+gone. CERN still maintains a mirror, which we use to install some additional 
+packages required for building the firmware that are not present in the base 
+`jalle19/centos7-stlinux24` image.
+
+Lately the mirror CERN has been hosting has started acting up, possibly it's 
+being retired. I have pushed a `jalle19/satip-axe-make` image based on the 
+Dockerfile in this repository, so the firmware can be built without any yum/dnf 
+install operations.
+
 ## More information
 
 For general information, see [upstream's README](https://github.com/perexg/satip-axe#readme), [upstream's dist/README](https://github.com/perexg/satip-axe/blob/master/dist/README) and [upstream's debug/README](https://github.com/perexg/satip-axe/blob/master/debug/README.md)

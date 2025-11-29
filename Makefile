@@ -80,13 +80,13 @@ endef
 # short-hand for building a releases with Docker
 #
 docker-release:
-	docker build -t satip-axe-make .
-	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make all release
+	docker pull jalle19/satip-axe-make
+	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) jalle19/satip-axe-make:latest all release
 
 docker-clean-release:
-	docker build -t satip-axe-make .
+	docker pull jalle19/satip-axe-make
 	git clean -xfd -f
-	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) satip-axe-make clean all release
+	docker run --rm -v $(shell pwd):/build --user $(shell id -u):$(shell id -g) jalle19/satip-axe-make:latest clean all release
 
 #
 # all
