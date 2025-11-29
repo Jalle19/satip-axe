@@ -1,4 +1,4 @@
-BUILD=27-rc1
+BUILD=27-rc2
 VERSION=$(shell date +%Y%m%d%H%M)-$(BUILD)
 CPUS=$(shell nproc)
 CURDIR=$(shell pwd)

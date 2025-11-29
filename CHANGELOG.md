@@ -2,6 +2,12 @@
 
 This change log will be updated whenever a new official release is made
 
+## Build 27-rc2
+
+Changes since 27-rc1:
+
+* Add software watchdog daemon, should make the device reboot itself automatically if it locks up
+
 ## Build 27-rc1
 
 * Bump `minisatip` to v1.3.57, the latest 1.3.x version which is the last 
